@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: ed1db04c639948c4898256a2e499c837
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - diagonalObject: {fileID: 465210540875894673, guid: 6bcc4351febc6c24ea8b40f0d7a96f8a, type: 3}
+  - halfcurve1Object: {fileID: 1352896694152770673, guid: 338c6ed1a98a493449e2573a00ed0849, type: 3}
+  - halfcurve2Object: {fileID: 1352896694152770673, guid: 338c6ed1a98a493449e2573a00ed0849, type: 3}
+  - straightObject: {fileID: 7497141148605074162, guid: ba89a2e2ee80d7c4b89476ed7c977ca3, type: 3}
+  - fullcurveObject: {fileID: 919132149155446097, guid: fd45cae35a2bd644889967be701117d7, type: 3}
+  - starterObject: {fileID: 7187523972363416426, guid: 786231e335a71dc4fa0ed62efd302090, type: 3}
+  - pavementObject: {fileID: 401254697374179800, guid: e981367ec34f0924881246c25c2c4da6, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
