@@ -549,12 +549,13 @@ public class spawntiles : MonoBehaviour
                     catch(System.Exception) { }
                    
                 }
-                else
+                else if (gridMap[PosX, PosY].tile != null)
                 {
                     nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
                     gridMap[PosX, PosY].tile = new Tile(getConnectorType(connectorType.left, gridMap[PosX, PosY].tile.getTileType()), matchRotation("East", connectorType.left, getConnectorType(connectorType.left, gridMap[PosX, PosY].tile.getTileType())));
                     break;
                 }
+                else { break; }
             }
         }
         
@@ -563,10 +564,97 @@ public class spawntiles : MonoBehaviour
 
      private piece getConnectorType(connectorType current, piece collider)
     {
-        piece piece;
+        piece piecetoReturn = piece.pavement;
+        connectorType currentMatch = current;
+        piece toSlot = collider;
 
+        if (toSlot == piece.straight)
+        {
+            if (current == connectorType.left)
+            {
+                piecetoReturn = piece.straightleft;
+            }
+            else if (current == connectorType.right)
+            {
+                piecetoReturn = piece.straightright;
+            }
+            else if (current == connectorType.straight)
+            {
+                piecetoReturn = piece.straightstraight;
+            }
+        }
+        else if (toSlot == piece.fullcurve)
+        {
+            if (current == connectorType.left)
+            {
+                piecetoReturn = piece.curvedleft;
+            }
+            else if (current == connectorType.right)
+            {
+                piecetoReturn = piece.curvedright;
+            }
+            else if (current == connectorType.straight)
+            {
+                piecetoReturn = piece.curvedstraight;
+            }
+        }
+        else if (toSlot == piece.halfcurveleft)
+        {
+            if (current == connectorType.left)
+            {
+                piecetoReturn = piece.halfleftleft;
+            }
+            else if (current == connectorType.right)
+            {
+                piecetoReturn = piece.halfleftright;
+            }
+            else if (current == connectorType.straight)
+            {
+                piecetoReturn = piece.halfleftstraight;
+            }
 
-        return piece;
+        }
+        else if (toSlot == piece.halfcurveright)
+        {
+            if (current == connectorType.left)
+            {
+                piecetoReturn = piece.halfrightleft;
+            }
+            else if (current == connectorType.right)
+            {
+                piecetoReturn = piece.halfrightright;
+            }
+            else if (current == connectorType.straight)
+            {
+                piecetoReturn = piece.halfrightstraight;
+            }
+
+        }
+        else if (toSlot == piece.diagonal)
+        {
+            if (current == connectorType.left)
+            {
+                piecetoReturn = piece.diagleft;
+            }
+            else if (current == connectorType.right)
+            {
+                piecetoReturn = piece.diagright;
+            }
+            else if (current == connectorType.straight)
+            {
+                piecetoReturn = piece.diagstraight;
+            }
+        }
+        else if (toSlot == piece.extraedge)
+        {
+            piecetoReturn = piece.diagonal;
+        }
+        else if (toSlot == piece.extraedge)
+        {
+            piecetoReturn = piece.diagonal;
+        }
+
+        return piecetoReturn;
     }
 
 
@@ -799,8 +887,21 @@ public enum piece
     extraedge,
     starter,
     centre,
-    centreedge,
-    centrecorner
+    straightstraight,
+    straightleft,
+    straightright,
+    curvedstraight,
+    curvedright,
+    curvedleft,
+    diagstraight,
+    diagleft,
+    diagright,
+    halfrightstraight,
+    halfrightright,
+    halfrightleft,
+    halfleftstraight,
+    halfleftright,
+    halfleftleft
 }
 
 public class Tile
