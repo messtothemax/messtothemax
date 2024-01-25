@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityEngine.Tilemaps;
@@ -22,17 +23,23 @@ public class spawntiles : MonoBehaviour
     public GameObject pavementObject;
     public GameObject extraedgeObject;
     public GameObject centreObject;
+    public GameObject straightConnectorObject;
+    public GameObject halfcurveRightConnectorObject;
+    public GameObject halfcurveLeftConnectorObject;
+    public GameObject fullcurveConnectorObject;
+    public GameObject startConnectorLeftObject;
+    public GameObject startConnectorRightObject;
     // Start is called before the first frame update
     void Start()
     {
         createGrid(gridSize);
-      
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
 
     }
 
@@ -49,7 +56,7 @@ public class spawntiles : MonoBehaviour
         }
         createCentre(gridSize);
         spawnroads(roadNum);
-       
+        fillInBlanks();
     }
 
     void createCentre(int gridSize)
@@ -57,9 +64,9 @@ public class spawntiles : MonoBehaviour
         int centreStartX;
         int centreStartY;
         int centreSize = 7;
-      
-            centreStartX = Random.Range(gridSize / 4, gridSize - gridSize / 4);
-            centreStartY = Random.Range(gridSize / 4, gridSize - gridSize / 4);
+
+        centreStartX = Random.Range(gridSize / 4, gridSize - gridSize / 4);
+        centreStartY = Random.Range(gridSize / 4, gridSize - gridSize / 4);
 
         for (int x = centreStartX - centreSize; x <= centreStartX + centreSize; x++)
         {
@@ -124,9 +131,9 @@ public class spawntiles : MonoBehaviour
     {
         int startingpointX = 0;
         int startingpointY = 0;
-        
-       
-        for (int a  = 0; a < roadNumber; a++)
+
+
+        for (int a = 0; a < roadNumber; a++)
         {
             bool started = false;
             int[] possibleSpawns = generateRandomArray(roadNumber);
@@ -134,10 +141,10 @@ public class spawntiles : MonoBehaviour
 
             if (spawnPos > 3)
             {
-                spawnPos -= 3;
+                spawnPos -= 4;
             }
 
-            if ( spawnPos == 2)
+            if (spawnPos == 2)
             {
                 while (started == false)
                 {
@@ -149,12 +156,12 @@ public class spawntiles : MonoBehaviour
                         gridMap[startingpointX, startingpointY].filled = true;
                         started = true;
                     }
-                    
+
                 }
-                
+
             }
 
-            if (spawnPos == 3)
+            else if (spawnPos == 3)
             {
                 while (started == false)
                 {
@@ -170,7 +177,7 @@ public class spawntiles : MonoBehaviour
                 }
             }
 
-            if (spawnPos == 0)
+            else if (spawnPos == 0)
             {
                 while (started == false)
                 {
@@ -186,7 +193,7 @@ public class spawntiles : MonoBehaviour
                 }
             }
 
-            if (spawnPos == 1)
+            else if  (spawnPos == 1)
             {
                 while (started == false)
                 {
@@ -194,7 +201,7 @@ public class spawntiles : MonoBehaviour
                     startingpointY = Random.Range(0, gridSize);
                     if (gridMap[startingpointX, startingpointY].tile == null)
                     {
-                        gridMap[startingpointX, startingpointY].tile = new Tile(piece.starter,1);
+                        gridMap[startingpointX, startingpointY].tile = new Tile(piece.starter, 1);
                         gridMap[startingpointX, startingpointY].filled = true;
                         started = true;
                     }
@@ -203,8 +210,8 @@ public class spawntiles : MonoBehaviour
             }
             createPath(startingpointX, startingpointY);
         }
-        
-        fillInBlanks();
+
+
     }
 
     void createPath(int startX, int startY)
@@ -219,34 +226,39 @@ public class spawntiles : MonoBehaviour
         piece nextpiece;
         int curveCounter = 0;
 
-        for (int i = 0; i < 100;  i++)
+        for (int i = 0; i < gridSize * gridSize; i++)
         {
-            curveCounter ++;
-            piece pieceType = currentPiece.tile.getTileType();
+            curveCounter++;
             if (curveCounter % 5 != 0)
             {
                 nextDiagPieces = new piece[] { piece.diagonal };
-                nextPieces = new piece[] {piece.straight };     
+                nextPieces = new piece[] { piece.straight };
             }
             else
             {
-                nextPieces = new piece[] { piece.straight,piece.halfcurveright, piece.halfcurveleft, piece.fullcurve, piece.straight };
-                nextDiagPieces = new piece[] { piece.diagonal, piece.halfcurveright,piece.halfcurveleft };
+                nextPieces = new piece[] { piece.straight, piece.halfcurveright, piece.halfcurveleft, piece.fullcurve, piece.straight };
+                nextDiagPieces = new piece[] { piece.diagonal, piece.halfcurveright, piece.halfcurveleft };
             }
-
-
             if (currentPiece.tile.north == connectorType.straight)
             {
                 PosY++;
-
-                if (PosY < gridSize && gridMap[PosX, PosY].tile == null)
+                if (PosY < gridSize)
                 {
-                    
-                    nextpiece = nextPieces[Random.Range(0, nextPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("South", connectorType.straight, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.south = connectorType.no;
+                    if (gridMap[PosX, PosY].tile == null)
+                    {
+                        nextpiece = nextPieces[Random.Range(0, nextPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("South", connectorType.straight, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.south = connectorType.no;
+                    }
+                    else if (gridMap[PosX, PosY].tile != null)
+                    {
+                        currentPiece = gridMap[PosX, PosY];
+                        setConnectorType("South", currentPiece.tile, PosX, PosY);
+                        currentPiece.tile.south = connectorType.no;
+                        break;
+                    }
                 }
                 else
                 {
@@ -257,35 +269,99 @@ public class spawntiles : MonoBehaviour
             {
                 PosX++;
                 PosY++;
-
-                if (PosX < gridSize && PosY < gridSize && gridMap[PosX, PosY].tile == null)
+                if (PosX < gridSize && PosY < gridSize)
                 {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("South",connectorType.right, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.south = connectorType.no;
-                    edgePlaceY = PosY - 1;
-                    try
+                    if (gridMap[PosX, PosY].tile == null)
                     {
-                        gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 2);
-                    }
-                    catch (System.Exception )
-                    {
+                        nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("South", connectorType.right, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.south = connectorType.no;
+                        currentPiece.tile.west = connectorType.no;
+                        edgePlaceY = PosY - 1;
+                        try
+                        {
+                            gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 2);
+                        }
+                        catch (System.Exception)
+                        {
 
+                        }
+                       
+                        edgePlaceX = PosX - 1;
+                        try
+                        {
+                            gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 0);
+                        }
+                        catch (System.Exception) { }
                     }
-                    currentPiece.tile.west = connectorType.no;
-                    edgePlaceX = PosX - 1;
-                    try
+                    else if (gridMap[PosX, PosY].tile != null)
                     {
-                        gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 0);
+                        PosX--;
+                        PosY--;
+
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 3);
+                              
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveright, 2);
+                               
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 2);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 0);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveleft)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 0);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                            }
+                        }
+                        currentPiece.tile.west = connectorType.no;
+                        currentPiece.tile.south = connectorType.no;
                     }
-                    catch (System.Exception){ }
-                   
                 }
                 else
                 {
-                    break;
+                    PosX--;
+                    PosY--;
+                    if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 3);
+                    }
+                    else if (gridMap[PosX, PosY].tile.getTileType()== piece.halfcurveright)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 2);
+                    }
+                    else
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                    }
+                    currentPiece = gridMap[PosX, PosY];
+                    currentPiece.tile.south = connectorType.no;
+                    currentPiece.tile.west = connectorType.no;
+                   
                 }
 
             }
@@ -293,121 +369,343 @@ public class spawntiles : MonoBehaviour
             {
                 PosX--;
                 PosY++;
-                if (PosX >= 0 && PosY < gridSize && gridMap[PosX, PosY].tile == null)
+                if (PosX >= 0 && PosY < gridSize)
                 {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("South",connectorType.left, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.south = connectorType.no;
-                    edgePlaceY = PosY - 1;
-                    try
+                    if (gridMap[PosX, PosY].tile == null)
                     {
-                        gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 3);
+                        nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("South", connectorType.left, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.south = connectorType.no;
+                        currentPiece.tile.east = connectorType.no;
+                        edgePlaceY = PosY - 1;
+                        try
+                        {
+                            gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 3);
+                        }
+                        catch (System.Exception) { }
+                        edgePlaceX = PosX + 1;
+                        try
+                        {
+                            gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 1);
+                        }
+                        catch (System.Exception) { }
                     }
-                    catch(System.Exception ) { }
-                    currentPiece.tile.east = connectorType.no;
-                    edgePlaceX = PosX + 1;
-                    try
+                    else if (gridMap[PosX, PosY].tile != null)
                     {
-                        gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 1);
-                    }
-                    catch (System.Exception ) { }
-                }
+                        PosX++;
+                        PosY--;
 
-                else
-                {
-                    break;
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 2);
+                              
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveright, 1);
+                               
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 1);
+                                
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                              
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveleft)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
+                                
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 0);
+                               
+                            }
+                        }
+                        currentPiece.tile.east = connectorType.no;
+                        currentPiece.tile.south = connectorType.no;
+                    }
+                    else
+                    {
+                        PosX++;
+                        PosY--;
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            gridMap[PosX,PosY].tile = new Tile(piece.halfcurveleft, 3);
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+                            gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                        }
+                        else
+                        {
+                            gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
+                        }
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.east = connectorType.no;
+                        currentPiece.tile.south = connectorType.no;
+
+                    }
                 }
             }
             else if (currentPiece.tile.south == connectorType.straight)
             {
                 PosY--;
-                if (PosY >= 0 && gridMap[PosX, PosY].tile == null)
+                if (PosY >= 0)
                 {
-                    nextpiece = nextPieces[Random.Range(0, nextPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("North", connectorType.straight, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.north = connectorType.no;
+                    if (gridMap[PosX, PosY].tile == null)
+                    {
+                        nextpiece = nextPieces[Random.Range(0, nextPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("North", connectorType.straight, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.north = connectorType.no;
+                    }
+                    else if (gridMap[PosX, PosY].tile != null)
+                    {
+                        currentPiece = gridMap[PosX, PosY];
+                        setConnectorType("North", currentPiece.tile, PosX, PosY);
+                        currentPiece.tile.north = connectorType.no;
+                        break;
+                    }
                 }
                 else
                 {
                     break;
                 }
+
 
             }
             else if (currentPiece.tile.south == connectorType.right)
             {
                 PosX--;
                 PosY--;
-                if (PosX >= 0 && PosY >= 0 && gridMap[PosX, PosY].tile == null)
+                if (PosX >= 0 && PosY >= 0)
                 {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("North",connectorType.right, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.north = connectorType.no;
-                    edgePlaceY = PosY + 1;
-                    try
+                    if (gridMap[PosX, PosY].tile == null)
                     {
-                        gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 0);
+                        nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("North", connectorType.right, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.north = connectorType.no;
+                        currentPiece.tile.east = connectorType.no;
+                        edgePlaceY = PosY + 1;
+                        try
+                        {
+                            gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 0);
+                        }
+                        catch (System.Exception) { }
+                        edgePlaceX = PosX + 1;
+                        try
+                        {
+                            gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 2);
+                        }
+                        catch (System.Exception) { }
                     }
-                    catch(System.Exception) { }
-                    edgePlaceX = PosX + 1;
-                    currentPiece.tile.east = connectorType.no;
-                    try
+                    else if (gridMap[PosX, PosY].tile != null)
                     {
-                        gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 2);
+                        PosX++;
+                        PosY++;
+                   
+
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 1);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveright, 0);
+                            }
+
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 0);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 0);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveleft)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 2);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                            }
+                        }
+                        currentPiece.tile.east = connectorType.no;
+                        currentPiece.tile.north = connectorType.no;
                     }
-                    catch (System.Exception) { }
+
+
+
                 }
                 else
                 {
-                    break;
-                }
+                    PosX++;
+                    PosY++;
+                    if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 1);
+                    }
+                    else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 0);
+                    }
+                    else
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                    }
+                    currentPiece = gridMap[PosX, PosY];
+                    currentPiece.tile.east = connectorType.no;
+                    currentPiece.tile.north = connectorType.no;
 
+                }
             }
             else if (currentPiece.tile.south == connectorType.left)
             {
                 PosX++;
                 PosY--;
-                if (PosX < gridSize && PosY >= 0 && gridMap[PosX, PosY].tile == null)
+                if (PosX < gridSize && PosY >= 0)
                 {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("North", connectorType.left, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.north = connectorType.no;
-                    edgePlaceY = PosY + 1;
-                    try
+                    if (gridMap[PosX, PosY].tile == null)
                     {
-                        gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 1);
+                        nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("North", connectorType.left, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.north = connectorType.no;
+                        currentPiece.tile.west = connectorType.no;
+                        edgePlaceY = PosY + 1;
+                        try
+                        {
+                            gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 1);
+                        }
+                        catch (System.Exception) { }
+                        edgePlaceX = PosX - 1;
+                        try
+                        {
+                            gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 3);
+                        }
+                        catch (System.Exception) { }
                     }
-                    catch(System.Exception) { }
-                    currentPiece.tile.west = connectorType.no;
-                    edgePlaceX = PosX - 1;
-                    try
+
+                    else if (gridMap[PosX, PosY].tile != null)
                     {
-                        gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 3);
+                        PosX--;
+                        PosY++;
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 0);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveright, 3);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveleft)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 1);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 0);
+                            }
+                        }
+                        currentPiece.tile.north = connectorType.no;
+                        currentPiece.tile.west = connectorType.no;
                     }
-                    catch (System.Exception) { }
+
+
                 }
                 else
                 {
-                    break;
+                    PosX--;
+                    PosY++;
+                    if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.halfcurveright, 3);
+                    }
+                    else if (   gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                    }
+                    else
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 1);
+                    }
+                    currentPiece = gridMap[PosX, PosY];
+                    currentPiece.tile.north = connectorType.no;
+                    currentPiece.tile.west = connectorType.no;
                 }
             }
             else if (currentPiece.tile.east == connectorType.straight)
             {
                 PosX++;
-                if (PosX < gridSize && gridMap[PosX, PosY].tile == null)
+                if (PosX < gridSize)
                 {
-                    nextpiece = nextPieces[Random.Range(0, nextPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("West", connectorType.straight, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.west = connectorType.no;
+                    if (gridMap[PosX, PosY].tile == null)
+                    {
+                        nextpiece = nextPieces[Random.Range(0, nextPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("West", connectorType.straight, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.west = connectorType.no;
+                    }
+                    else if (gridMap[PosX, PosY].tile != null)
+                    {
+                        currentPiece = gridMap[PosX, PosY];
+                        setConnectorType("West", currentPiece.tile, PosX, PosY);
+                        currentPiece.tile.west = connectorType.no;
+                        break;
+
+                    }
+
                 }
                 else
                 {
@@ -418,247 +716,565 @@ public class spawntiles : MonoBehaviour
             {
                 PosX++;
                 PosY--;
-                if (PosX < gridSize && PosY >= 0 && gridMap[PosX, PosY].tile == null)
+                if (PosX < gridSize && PosY >= 0)
                 {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("West", connectorType.right, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.west = connectorType.no;
-                    edgePlaceY = PosY + 1;
-                    try
+                    if (gridMap[PosX, PosY].tile == null)
                     {
-                        gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 1);
+                        nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("West", connectorType.right, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.west = connectorType.no;
+                        currentPiece.tile.north = connectorType.no;
+                        edgePlaceY = PosY + 1;
+                        try
+                        {
+                            gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 1);
+                        }
+                        catch (System.Exception) { }
+                    
+                        edgePlaceX = PosX - 1;
+                        try
+                        {
+                            gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 3);
+                        }
+                        catch (System.Exception) { }
                     }
-                    catch(System.Exception) { }
-                    currentPiece.tile.north = connectorType.no;
-                    edgePlaceX = PosX - 1;
-                    try
+                    else if (gridMap[PosX, PosY].tile != null)
                     {
-                        gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 3);
+                        PosX--;
+                        PosY++;
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 0);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveright, 3);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveleft)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 1);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 0);
+                            }
+                        }
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.west = connectorType.no;
+                        currentPiece.tile.north = connectorType.no;
                     }
-                    catch (System.Exception) { }
                 }
                 else
                 {
-                    break;
+
+                    PosX--;
+                    PosY++;
+                    if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 3);
+                    }
+                    else if (   gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                    }
+                    else
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 1);
+                    }
+                     currentPiece.tile.north = connectorType.no;
+                     currentPiece.tile.west = connectorType.no;
                 }
+
             }
             else if (currentPiece.tile.east == connectorType.left)
             {
                 PosX++;
                 PosY++;
-                if (PosX < gridSize && PosY < gridSize && gridMap[PosX, PosY].tile == null)
+                if (PosX < gridSize && PosY < gridSize)
                 {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("West", connectorType.left, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.west = connectorType.no;
-                    edgePlaceY = PosY - 1;
-                    try
+                    if (gridMap[PosX, PosY].tile == null)
                     {
-                        gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 2);
+                        nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("West", connectorType.left, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.west = connectorType.no;
+                        currentPiece.tile.south = connectorType.no;
+                        edgePlaceY = PosY - 1;
+                        try
+                        {
+                            gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 2);
+                        }
+                        catch (System.Exception) { }
+                        
+                        edgePlaceX = PosX - 1;
+                        try
+                        {
+                            gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 0);
+                        }
+                        catch (System.Exception) { }
                     }
-                    catch(System.Exception) { }
-                    currentPiece.tile.south = connectorType.no;
-                    edgePlaceX = PosX - 1;
-                    try
+                    else if (gridMap[PosX, PosY].tile != null)
                     {
-                        gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 0);
+                        PosX--;
+                        PosY--;
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveleft)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 1);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 0);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 0);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 1);
+                            }
+                        }
+                        currentPiece.tile.west = connectorType.no;
+                        currentPiece.tile.south = connectorType.no;
                     }
-                    catch (System.Exception) { }
                 }
                 else
                 {
-                    break;
+                    PosX--;
+                    PosY--;
+                    if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 3);
+                    }
+                    else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 2);
+                    }
+                    else
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                    }
+                    currentPiece = gridMap[PosX, PosY];
+                    currentPiece.tile.west = connectorType.no;
+                    currentPiece.tile.south = connectorType.no;
                 }
             }
             else if (currentPiece.tile.west == connectorType.straight)
             {
                 PosX--;
-
-                if (PosX >= 0 && gridMap[PosX, PosY].tile == null)
+                if (PosX >= 0)
                 {
-                    nextpiece = nextPieces[Random.Range(0, nextPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("East", connectorType.straight, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.east = connectorType.no;
+                    if (gridMap[PosX, PosY].tile == null)
+                    {
+                        nextpiece = nextPieces[Random.Range(0, nextPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("East", connectorType.straight, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.east = connectorType.no;
+                    }
+                    else if (gridMap[PosX, PosY].tile != null)
+                    {
+                        currentPiece = gridMap[PosX, PosY];
+                        setConnectorType("East", currentPiece.tile, PosX, PosY);
+                        currentPiece.tile.east = connectorType.no;
+                        break;
+
+                    }
                 }
                 else
                 {
                     break;
                 }
+
             }
             else if (currentPiece.tile.west == connectorType.right)
             {
                 PosX--;
                 PosY++;
-
-                if (PosX >= 0 && PosY < gridSize && gridMap[PosX, PosY].tile == null)
+                if (PosX >= 0 && PosY < gridSize)
                 {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("East", connectorType.right, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
-                    currentPiece = gridMap[PosX, PosY];
-                    currentPiece.tile.east = connectorType.no;
-                    edgePlaceY = PosY - 1;
-                    try
+                    if (gridMap[PosX, PosY].tile == null)
                     {
-                        gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 3);
+                        nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("East", connectorType.right, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.east = connectorType.no;
+                        currentPiece.tile.south = connectorType.no;
+                        edgePlaceY = PosY - 1;
+                        try
+                        {
+                            gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 3);
+                        }
+                        catch (System.Exception) { }
+                    
+                        edgePlaceX = PosX + 1;
+                        try
+                        {
+                            gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 1);
+                        }
+                        catch (System.Exception) { }
                     }
-                    catch(System.Exception) { }
-                    currentPiece.tile.south = connectorType.no;
-                    edgePlaceX = PosX + 1;
-                    try
+                    else if (gridMap[PosX, PosY].tile != null)
                     {
-                        gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 1);
+                        PosX++;
+                        PosY--;
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 1);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveleft)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 0);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 2);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveright, 1);
+                            }
+                        }
+                        currentPiece.tile.east = connectorType.no;
+                        currentPiece.tile.south = connectorType.no;
+
                     }
-                    catch (System.Exception) { }
+
+
                 }
                 else
                 {
-                    break;
+                    PosX++;
+                    PosY--;
+                    if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 3);
+                    }
+                    else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                    }
+                    else
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
+                    }
+                    currentPiece = gridMap[PosX, PosY];
+                    currentPiece.tile.east = connectorType.no;
+                    currentPiece.tile.south = connectorType.no;
                 }
             }
             else if (currentPiece.tile.west == connectorType.left)
             {
                 PosX--;
                 PosY--;
-
-                if (PosX >= 0 && PosY >= 0 && gridMap[PosX, PosY].tile == null)
+                if (PosX >= 0 && PosY >= 0)
                 {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("East", connectorType.left, nextpiece));
-                    gridMap[PosX, PosY].filled = true;
+                    if (gridMap[PosX, PosY].tile == null)
+                    {
+                        nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
+                        gridMap[PosX, PosY].tile = new Tile(nextpiece, matchRotation("East", connectorType.left, nextpiece));
+                        gridMap[PosX, PosY].filled = true;
+                        currentPiece = gridMap[PosX, PosY];
+                        currentPiece.tile.east = connectorType.no;
+                        currentPiece.tile.north = connectorType.no;
+                        edgePlaceY = PosY + 1;
+                        try
+                        {
+                            gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 0);
+                        }
+                        catch (System.Exception) { }
+                        edgePlaceX = PosX + 1;
+                        try
+                        {
+                            gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 2);
+                        }
+                        catch (System.Exception) { }
+
+                    }
+                    else if (gridMap[PosX, PosY].tile != null)
+                    {
+                        PosX++;
+                        PosY++;
+                        if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 0);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 0);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveleft)
+                        {
+
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 2);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                            }
+                        }
+                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                        {
+                            if (Random.Range(0, 2) == 0)
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 1);
+                            }
+                            else
+                            {
+                                gridMap[PosX, PosY].tile = new Tile(piece.halfcurveright, 0);
+                            }
+                        }
+                        currentPiece.tile.east = connectorType.no;
+                        currentPiece.tile.north = connectorType.no;
+                    }
+
+
+                }
+                else
+                {
+
+                    PosX++;
+                    PosY++;
+                    if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 3);
+                    }
+                    else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 0);
+                    }
+                    else
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                    }
                     currentPiece = gridMap[PosX, PosY];
                     currentPiece.tile.east = connectorType.no;
-                    edgePlaceY = PosY + 1;
-                    try
-                    {
-                        gridMap[PosX, edgePlaceY].tile = new Tile(piece.extraedge, 0);
-                    }
-                    catch(System.Exception) { }
                     currentPiece.tile.north = connectorType.no;
-                    edgePlaceX = PosX + 1;
-                    try
-                    {
-                        gridMap[edgePlaceX, PosY].tile = new Tile(piece.extraedge, 2);
-                    }
-                    catch(System.Exception) { }
-                   
                 }
-                else if (gridMap[PosX, PosY].tile != null)
-                {
-                    nextpiece = nextDiagPieces[Random.Range(0, nextDiagPieces.Length)];
-                    gridMap[PosX, PosY].tile = new Tile(getConnectorType(connectorType.left, gridMap[PosX, PosY].tile.getTileType()), matchRotation("East", connectorType.left, getConnectorType(connectorType.left, gridMap[PosX, PosY].tile.getTileType())));
-                    break;
-                }
-                else { break; }
+            
+
             }
         }
-        
-        
     }
-
-     private piece getConnectorType(connectorType current, piece collider)
+    void setConnectorType(string sideToAlign, Tile collider, int posX, int posY)
     {
-        piece piecetoReturn = piece.pavement;
-        connectorType currentMatch = current;
-        piece toSlot = collider;
+        Tile toSlot = collider;
+        int rotation = toSlot.getRotateAmount();
 
-        if (toSlot == piece.straight)
+        if (toSlot.getTileType() == piece.starter)
         {
-            if (current == connectorType.left)
+            if (rotation == 0)
             {
-                piecetoReturn = piece.straightleft;
+                if (sideToAlign == "East")
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.starterjoinright, 0);
+                }
+                else
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.starterjoinleft, 0);
+                }
             }
-            else if (current == connectorType.right)
+            else if (rotation == 90)
             {
-                piecetoReturn = piece.straightright;
+                if (sideToAlign == "South")
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.starterjoinright, 1);
+                }
+                else
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.starterjoinleft, 1);
+                }
             }
-            else if (current == connectorType.straight)
+            else if (rotation == 180)
             {
-                piecetoReturn = piece.straightstraight;
+                if (sideToAlign == "West")
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.starterjoinright, 2);
+                }
+                else
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.starterjoinleft, 2);
+                }
             }
-        }
-        else if (toSlot == piece.fullcurve)
-        {
-            if (current == connectorType.left)
+            else
             {
-                piecetoReturn = piece.curvedleft;
+                if (sideToAlign == "North")
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.starterjoinright, 3);
+                }
+                else
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.starterjoinleft, 3);
+                }
             }
-            else if (current == connectorType.right)
-            {
-                piecetoReturn = piece.curvedright;
-            }
-            else if (current == connectorType.straight)
-            {
-                piecetoReturn = piece.curvedstraight;
-            }
-        }
-        else if (toSlot == piece.halfcurveleft)
-        {
-            if (current == connectorType.left)
-            {
-                piecetoReturn = piece.halfleftleft;
-            }
-            else if (current == connectorType.right)
-            {
-                piecetoReturn = piece.halfleftright;
-            }
-            else if (current == connectorType.straight)
-            {
-                piecetoReturn = piece.halfleftstraight;
-            }
-
-        }
-        else if (toSlot == piece.halfcurveright)
-        {
-            if (current == connectorType.left)
-            {
-                piecetoReturn = piece.halfrightleft;
-            }
-            else if (current == connectorType.right)
-            {
-                piecetoReturn = piece.halfrightright;
-            }
-            else if (current == connectorType.straight)
-            {
-                piecetoReturn = piece.halfrightstraight;
-            }
-
-        }
-        else if (toSlot == piece.diagonal)
-        {
-            if (current == connectorType.left)
-            {
-                piecetoReturn = piece.diagleft;
-            }
-            else if (current == connectorType.right)
-            {
-                piecetoReturn = piece.diagright;
-            }
-            else if (current == connectorType.straight)
-            {
-                piecetoReturn = piece.diagstraight;
-            }
-        }
-        else if (toSlot == piece.extraedge)
-        {
-            piecetoReturn = piece.diagonal;
-        }
-        else if (toSlot == piece.extraedge)
-        {
-            piecetoReturn = piece.diagonal;
         }
 
-        return piecetoReturn;
+        else if (toSlot.getTileType() == piece.straight)
+        {
+            if (sideToAlign == "North")
+            {
+                gridMap[posX, posY].tile = new Tile(piece.straightjoin, 2);
+            }
+            else if (sideToAlign == "South")
+            {
+                gridMap[posX, posY].tile = new Tile(piece.straightjoin, 0);
+            }
+            else if (sideToAlign == "East")
+            {
+                gridMap[posX, posY].tile = new Tile(piece.straightjoin, 3);
+            }
+            else if (sideToAlign == "West")
+            {
+                gridMap[posX, posY].tile = new Tile(piece.straightjoin, 1);
+            }
+        }
+
+        else if (toSlot.getTileType() == piece.fullcurve)
+        {
+            if (sideToAlign == "North")
+            {
+                gridMap[posX, posY].tile = new Tile(piece.straightjoin, 1);
+            }
+            else if (sideToAlign == "South")
+            {
+                gridMap[posX, posY].tile = new Tile(piece.straightjoin, 3);
+            }
+            else if (sideToAlign == "East")
+            {
+                gridMap[posX, posY].tile = new Tile(piece.straightjoin, 2);
+            }
+            else if (sideToAlign == "West")
+            {
+                gridMap[posX, posY].tile = new Tile(piece.straightjoin, 0);
+            }
+        }
+
+        else if (toSlot.getTileType() == piece.halfcurveleft)
+        {
+            gridMap[posX, posY].tile = new Tile(piece.halfcurveleftjoin, (toSlot.getRotateAmount() / 90));
+        }
+
+        else if (toSlot.getTileType() == piece.halfcurveright)
+        {
+            gridMap[posX, posY].tile = new Tile(piece.halfcurverightjoin, (toSlot.getRotateAmount()/ 90));
+        }
+
+        else if (toSlot.getTileType() == piece.extraedge)
+        {
+            if (rotation == 0)
+            {
+                if (sideToAlign == "West")
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.halfcurveright, 1);
+                }
+                else
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.halfcurveleft, 2);
+                }
+            }
+            else if(rotation == 90)
+            {
+                if (sideToAlign == "East")
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.halfcurveleft, 3);
+                }
+                else
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.halfcurveright, 2);
+                }
+            }
+            else if (rotation == 180)
+            {
+                if (sideToAlign == "South")
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.halfcurveleft, 0);
+                }
+                else 
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.halfcurveright, 3);
+                }
+               
+            }
+            else
+            {
+                if (sideToAlign == "West")
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.halfcurveleft, 1);
+                }
+                else
+                {
+                    gridMap[posX, posY].tile = new Tile(piece.halfcurveright, 0);
+                }
+            }
+        }
     }
 
 
-     int matchRotation(string direction, connectorType faceType, piece tile)
+    int matchRotation(string direction, connectorType faceType, piece tile)
     {
         connectorType north = connectorType.no;
         connectorType south = connectorType.no;
@@ -729,7 +1345,7 @@ public class spawntiles : MonoBehaviour
 
         if (direction == "East")
         {
-            while(east != faceType)
+            while (east != faceType)
             {
                 connectorType placeholder = north;
                 north = west;
@@ -762,7 +1378,7 @@ public class spawntiles : MonoBehaviour
                 east = placeholder;
                 rotation++;
             }
-            
+
         }
         else if (direction == "West")
         {
@@ -780,8 +1396,8 @@ public class spawntiles : MonoBehaviour
         return rotation;
     }
 
-   void fillInBlanks()
-   {
+    void fillInBlanks()
+    {
         for (int x = 0; x < gridSize; x++)
         {
             for (int y = 0; y < gridSize; y++)
@@ -789,13 +1405,13 @@ public class spawntiles : MonoBehaviour
                 if (gridMap[x, y].tile == null)
                 {
                     gridMap[x, y].tile = new Tile(piece.pavement, 0);
-                    gridMap[x,y].filled = true;
+                    gridMap[x, y].filled = true;
                 }
-                
+
             }
         }
         spawnTiles();
-   }
+    }
 
     void spawnTiles()
     {
@@ -806,205 +1422,244 @@ public class spawntiles : MonoBehaviour
                 if (gridMap[x, y].tile.getTileType() == piece.diagonal)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(diagonalObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(diagonalObject, position, gridMap[x, y].tile.getRotation());
                 }
 
                 else if (gridMap[x, y].tile.getTileType() == piece.straight)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(straightObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(straightObject, position, gridMap[x, y].tile.getRotation());
                 }
 
                 else if (gridMap[x, y].tile.getTileType() == piece.halfcurveright)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(halfcurveRightObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(halfcurveRightObject, position, gridMap[x, y].tile.getRotation());
                 }
 
                 else if (gridMap[x, y].tile.getTileType() == piece.halfcurveleft)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(halfcurveLeftObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(halfcurveLeftObject, position, gridMap[x, y].tile.getRotation());
                 }
 
                 else if (gridMap[x, y].tile.getTileType() == piece.starter)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(starterObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(starterObject, position, gridMap[x, y].tile.getRotation());
                 }
+
                 else if (gridMap[x, y].tile.getTileType() == piece.pavement)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(pavementObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(pavementObject, position, gridMap[x, y].tile.getRotation());
                 }
+
                 else if (gridMap[x, y].tile.getTileType() == piece.fullcurve)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(fullcurveObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(fullcurveObject, position, gridMap[x, y].tile.getRotation());
                 }
+
                 else if (gridMap[x, y].tile.getTileType() == piece.extraedge)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(extraedgeObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(extraedgeObject, position, gridMap[x, y].tile.getRotation());
                 }
-                else if (gridMap[x,y].tile.getTileType() == piece.centre)
+
+                else if (gridMap[x, y].tile.getTileType() == piece.centre)
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(centreObject, position, gridMap[x, y].tile.getRoatation());
+                    Instantiate(centreObject, position, gridMap[x, y].tile.getRotation());
+                }
+
+                else if (gridMap[x, y].tile.getTileType() == piece.straightjoin)
+                {
+                    Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
+                    Instantiate(straightConnectorObject, position, gridMap[x, y].tile.getRotation());
+                }
+
+                else if (gridMap[x, y].tile.getTileType() == piece.fullcurvejoin)
+                {
+                    Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
+                    Instantiate(fullcurveConnectorObject, position, gridMap[x, y].tile.getRotation());
+                }
+
+                else if (gridMap[x, y].tile.getTileType() == piece.halfcurveleftjoin)
+                {
+                    Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
+                    Instantiate(halfcurveLeftConnectorObject, position, gridMap[x, y].tile.getRotation());
+                }
+
+                else if (gridMap[x, y].tile.getTileType() == piece.halfcurverightjoin)
+                {
+                    Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
+                    Instantiate(halfcurveRightConnectorObject, position, gridMap[x, y].tile.getRotation());
+                }
+
+                else if (gridMap[x, y].tile.getTileType() == piece.starterjoinleft)
+                {
+                    Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
+                    Instantiate(startConnectorLeftObject, position, gridMap[x, y].tile.getRotation());
+                }
+
+                else if (gridMap[x, y].tile.getTileType() == piece.starterjoinright)
+                {
+                    Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
+                    Instantiate(startConnectorRightObject, position, gridMap[x, y].tile.getRotation());
                 }
             }
         }
     }
 
 }
-public class Grid
-{
-    public Tile tile;
-    public bool filled = false;
-  
-    public Grid()
+    public class Grid
     {
-        tile = null;
+        public Tile tile;
+        public bool filled = false;
+
+        public Grid()
+        {
+            tile = null;
+        }
     }
-}
 
-public enum connectorType
-{
-    straight,
-    left,
-    right,
-    no
-}
-
-public enum piece
-{
-    halfcurveleft,
-    halfcurveright,
-    straight,
-    diagonal,
-    fullcurve,
-    pavement,
-    extraedge,
-    starter,
-    centre,
-    straightstraight,
-    straightleft,
-    straightright,
-    curvedstraight,
-    curvedright,
-    curvedleft,
-    diagstraight,
-    diagleft,
-    diagright,
-    halfrightstraight,
-    halfrightright,
-    halfrightleft,
-    halfleftstraight,
-    halfleftright,
-    halfleftleft
-}
-
-public class Tile
-{
-    public connectorType north = connectorType.no;
-    public connectorType south = connectorType.no;
-    public connectorType east = connectorType.no;
-    public connectorType west = connectorType.no;
-    int rotation;
-    piece tileType;
-    Quaternion rotater;
-    int RTQ = 0;
-    public Tile(piece tile, int rotateamount)
+    public enum connectorType
     {
-        tileType = tile;
-        rotation = rotateamount;
-
-        if (tileType == piece.starter)
-        {
-            north = connectorType.straight;
-            south = connectorType.no;
-            east = connectorType.no;
-            west = connectorType.no;
-        }
-
-        else if (tileType == piece.diagonal)
-        {
-            north = connectorType.right;
-            south = connectorType.right;
-            east = connectorType.left;
-            west = connectorType.left;
-        }
-
-        else if (tileType == piece.pavement)
-        {
-            north = connectorType.no;
-            south = connectorType.no;
-            east = connectorType.no;
-            west = connectorType.no;
-        }
-
-        else if (tileType == piece.halfcurveright)
-        {
-            north = connectorType.right;
-            south = connectorType.straight;
-            east = connectorType.left;
-            west = connectorType.no;
-        }
-        else if (tileType == piece.halfcurveleft)
-        {
-            north = connectorType.left;
-            south = connectorType.straight;
-            east = connectorType.no;
-            west = connectorType.right;
-        }
-        else if (tileType == piece.fullcurve)
-        {
-            north = connectorType.straight;
-            south = connectorType.no;
-            east = connectorType.no;
-            west = connectorType.straight;
-        }
-        else if (tileType == piece.straight)
-        {
-            north = connectorType.straight;
-            south = connectorType.straight;
-            east = connectorType.no;
-            west = connectorType.no;
-        }
-        else if (tileType == piece.extraedge)
-        {
-            north = connectorType.no;
-            south = connectorType.no;
-            east = connectorType.no;
-            west = connectorType.no;
-        }
-        calculateinitialRotation();
-
+        straight,
+        left,
+        right,
+        no
     }
-    public void calculateinitialRotation()
+
+    public enum piece
     {
-        
-        for (int i = 0; i < rotation; i++)
+        halfcurveleft,
+        halfcurveright,
+        straight,
+        diagonal,
+        fullcurve,
+        pavement,
+        extraedge,
+        starter,
+        centre,
+        starterjoinleft,
+        starterjoinright,
+        straightjoin,
+        halfcurveleftjoin,
+        halfcurverightjoin,
+        diagonaljoin,
+        fullcurvejoin,
+    }
+
+    public class Tile
+    {
+        public connectorType north = connectorType.no;
+        public connectorType south = connectorType.no;
+        public connectorType east = connectorType.no;
+        public connectorType west = connectorType.no;
+        int rotation;
+        piece tileType;
+        Quaternion rotater;
+        int RTQ = 0;
+        public Tile(piece tile, int rotateamount)
         {
-            connectorType placeholder = north;
-            north = west;
-            west = south;
-            south = east;
-            east = placeholder;
-            
+            tileType = tile;
+            rotation = rotateamount;
+
+            if (tileType == piece.starter)
+            {
+                north = connectorType.straight;
+                south = connectorType.no;
+                east = connectorType.no;
+                west = connectorType.no;
+            }
+
+            else if (tileType == piece.diagonal)
+            {
+                north = connectorType.right;
+                south = connectorType.right;
+                east = connectorType.left;
+                west = connectorType.left;
+            }
+
+            else if (tileType == piece.pavement)
+            {
+                north = connectorType.no;
+                south = connectorType.no;
+                east = connectorType.no;
+                west = connectorType.no;
+            }
+
+            else if (tileType == piece.halfcurveright)
+            {
+                north = connectorType.right;
+                south = connectorType.straight;
+                east = connectorType.left;
+                west = connectorType.no;
+            }
+            else if (tileType == piece.halfcurveleft)
+            {
+                north = connectorType.left;
+                south = connectorType.straight;
+                east = connectorType.no;
+                west = connectorType.right;
+            }
+            else if (tileType == piece.fullcurve)
+            {
+                north = connectorType.straight;
+                south = connectorType.no;
+                east = connectorType.no;
+                west = connectorType.straight;
+            }
+            else if (tileType == piece.straight)
+            {
+                north = connectorType.straight;
+                south = connectorType.straight;
+                east = connectorType.no;
+                west = connectorType.no;
+            }
+            else if (tileType == piece.extraedge)
+            {
+                north = connectorType.no;
+                south = connectorType.no;
+                east = connectorType.no;
+                west = connectorType.no;
+            }
+            calculateinitialRotation();
+
         }
-        RTQ = rotation * 90;
-        rotater = Quaternion.Euler(0, RTQ, 0);
+        public void calculateinitialRotation()
+        {
+
+            for (int i = 0; i < rotation; i++)
+            {
+                connectorType placeholder = north;
+                north = west;
+                west = south;
+                south = east;
+                east = placeholder;
+
+            }
+            RTQ = rotation * 90;
+            rotater = Quaternion.Euler(0, RTQ, 0);
+        }
+        public piece getTileType()
+        {
+            return tileType;
+        }
+        public Quaternion getRotation()
+        {
+            return rotater;
+        }
+
+        public int getRotateAmount()
+        {
+            return RTQ;
+        }
+
     }
-    public piece getTileType()
-    {
-        return tileType;
-    }
-    public Quaternion getRoatation()
-    {
-        return rotater;
-    }
-}
+
 
 
 

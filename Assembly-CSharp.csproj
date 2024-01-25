@@ -62,8 +62,6 @@
   <ItemGroup>
     <Compile Include="Assets\spawntiles.cs" />
     <Compile Include="Assets\Program.cs" />
-    <Compile Include="Assets\Prefabs\VectorScript.cs" />
-    <Compile Include="Assets\Prefabs\RandomWalker.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
