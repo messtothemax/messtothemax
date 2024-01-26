@@ -1515,7 +1515,7 @@ public class spawntiles : MonoBehaviour
             for (int y = 0; y < gridSize/4; y++)
             {
                 
-                    Vector3 position = new Vector3((25.6f * (float)x) +3.2f, 0.1f, (25.6f * (float)y) -3.2f);
+                    Vector3 position = new Vector3((25.6f * (float)x) +16f, 0.1f, (25.6f * (float)y) +3.2f);
                     Instantiate(pavementObject, position, Quaternion.identity);
             }
                 
