@@ -63,7 +63,7 @@ public class spawntiles : MonoBehaviour
     {
         int centreStartX;
         int centreStartY;
-        int centreSize = 7;
+        int centreSize = 5;
 
         centreStartX = Random.Range(gridSize / 4, gridSize - gridSize / 4);
         centreStartY = Random.Range(gridSize / 4, gridSize - gridSize / 4);
@@ -105,7 +105,7 @@ public class spawntiles : MonoBehaviour
     }
 
     // Fischer Yates Shuffle
-    static int[] generateRandomArray(int roadnum)
+    /*static int[] generateRandomArray(int roadnum)
     {
         int[] array = new int[roadnum];
 
@@ -125,7 +125,7 @@ public class spawntiles : MonoBehaviour
 
         return array;
 
-    }
+    }*/
 
     void spawnroads(int roadNumber)
     {
@@ -136,8 +136,7 @@ public class spawntiles : MonoBehaviour
         for (int a = 0; a < roadNumber; a++)
         {
             bool started = false;
-            int[] possibleSpawns = generateRandomArray(roadNumber);
-            int spawnPos = possibleSpawns[a];
+            int spawnPos = a;
 
             if (spawnPos > 3)
             {
@@ -228,8 +227,8 @@ public class spawntiles : MonoBehaviour
 
         for (int i = 0; i < gridSize * gridSize; i++)
         {
-            curveCounter++;
-            if (curveCounter % 5 != 0)
+            curveCounter += 1;
+            if (curveCounter % 3 != 0 || curveCounter < 7)
             {
                 nextDiagPieces = new piece[] { piece.diagonal };
                 nextPieces = new piece[] { piece.straight };
@@ -239,6 +238,8 @@ public class spawntiles : MonoBehaviour
                 nextPieces = new piece[] { piece.straight, piece.halfcurveright, piece.halfcurveleft, piece.fullcurve, piece.straight };
                 nextDiagPieces = new piece[] { piece.diagonal, piece.halfcurveright, piece.halfcurveleft };
             }
+
+
             if (currentPiece.tile.north == connectorType.straight)
             {
                 PosY++;
@@ -441,27 +442,27 @@ public class spawntiles : MonoBehaviour
                         currentPiece.tile.east = connectorType.no;
                         currentPiece.tile.south = connectorType.no;
                     }
+                }
+                else
+                {
+                    PosX++;
+                    PosY--;
+                    if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.halfcurveleft, 2);
+                    }
+                    else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
+                    {
+                        gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
+                    }
                     else
                     {
-                        PosX++;
-                        PosY--;
-                        if (gridMap[PosX, PosY].tile.getTileType() == piece.diagonal)
-                        {
-                            gridMap[PosX,PosY].tile = new Tile(piece.halfcurveleft, 3);
-                        }
-                        else if (gridMap[PosX, PosY].tile.getTileType() == piece.halfcurveright)
-                        {
-                            gridMap[PosX, PosY].tile = new Tile(piece.straight, 1);
-                        }
-                        else
-                        {
-                            gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
-                        }
-                        currentPiece = gridMap[PosX, PosY];
-                        currentPiece.tile.east = connectorType.no;
-                        currentPiece.tile.south = connectorType.no;
-
+                        gridMap[PosX, PosY].tile = new Tile(piece.fullcurve, 3);
                     }
+                    currentPiece = gridMap[PosX, PosY];
+                    currentPiece.tile.east = connectorType.no;
+                    currentPiece.tile.south = connectorType.no;
+
                 }
             }
             else if (currentPiece.tile.south == connectorType.straight)
@@ -1404,7 +1405,7 @@ public class spawntiles : MonoBehaviour
             {
                 if (gridMap[x, y].tile == null)
                 {
-                    gridMap[x, y].tile = new Tile(piece.pavement, 0);
+                    gridMap[x, y].tile = new Tile(piece.empty, 0);
                     gridMap[x, y].filled = true;
                 }
 
@@ -1447,12 +1448,6 @@ public class spawntiles : MonoBehaviour
                 {
                     Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
                     Instantiate(starterObject, position, gridMap[x, y].tile.getRotation());
-                }
-
-                else if (gridMap[x, y].tile.getTileType() == piece.pavement)
-                {
-                    Vector3 position = new Vector3(6.4f * (float)x, 0, 6.4f * (float)y);
-                    Instantiate(pavementObject, position, gridMap[x, y].tile.getRotation());
                 }
 
                 else if (gridMap[x, y].tile.getTileType() == piece.fullcurve)
@@ -1510,6 +1505,23 @@ public class spawntiles : MonoBehaviour
                 }
             }
         }
+        spawnPavement();
+    }
+
+    void spawnPavement()
+    {
+        for (int x = 0; x < gridSize/4; x++)
+        {
+            for (int y = 0; y < gridSize/4; y++)
+            {
+                
+                    Vector3 position = new Vector3((25.6f * (float)x) +3.2f, 0.1f, (25.6f * (float)y) -3.2f);
+                    Instantiate(pavementObject, position, Quaternion.identity);
+            }
+                
+        }
+            
+        
     }
 
 }
@@ -1550,6 +1562,7 @@ public class spawntiles : MonoBehaviour
         halfcurverightjoin,
         diagonaljoin,
         fullcurvejoin,
+        empty
     }
 
     public class Tile
